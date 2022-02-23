@@ -1,9 +1,6 @@
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let port: u16 = env::var("PORT")
-        .map(|s| s.parse())
-        .unwrap_or(Result::Ok(8080))
-        .unwrap();
+    let port = fetch_port();
 
     HttpServer::new(|| {
         App::new()
@@ -14,6 +11,13 @@ async fn main() -> std::io::Result<()> {
     .bind(("0.0.0.0", port))?
     .run()
     .await
+}
+
+fn fetch_port() -> u16 {
+    env::var("PORT")
+        .map(|s| s.parse())
+        .unwrap_or(Result::Ok(8080))
+        .unwrap()
 }
 
 use std::env;
