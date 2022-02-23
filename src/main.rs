@@ -1,15 +1,22 @@
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    let port: u16 = env::var("PORT")
+        .map(|s| s.parse())
+        .unwrap_or(Result::Ok(8080))
+        .unwrap();
+
     HttpServer::new(|| {
         App::new()
             .service(hello)
             .service(echo)
             .route("/hey", web::get().to(manual_hello))
     })
-    .bind(("0.0.0.0", 8080))?
+    .bind(("0.0.0.0", port))?
     .run()
     .await
 }
+
+use std::env;
 
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 
