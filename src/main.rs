@@ -1,9 +1,22 @@
+use std::env;
+
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use sqlx::{postgres::PgPoolOptions, PgPool};
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let port = fetch_port();
+    let db_url = env::var("DATABASE_URL").unwrap();
 
-    HttpServer::new(|| {
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&db_url)
+        .await
+        .unwrap();
+
+    HttpServer::new(move || {
         App::new()
+            .data(pool.clone())
             .service(hello)
             .service(echo)
             .route("/hey", web::get().to(manual_hello))
@@ -20,13 +33,15 @@ fn fetch_port() -> u16 {
         .unwrap()
 }
 
-use std::env;
-
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-
 #[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+async fn hello(pool: web::Data<PgPool>) -> impl Responder {
+    let row: (i64,) = sqlx::query_as("SELECT $1")
+        .bind(150_i64)
+        .fetch_one(pool.get_ref())
+        .await
+        .unwrap();
+
+    HttpResponse::Ok().body(row.0.to_string())
 }
 
 #[post("/echo")]
