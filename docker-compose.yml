@@ -2,14 +2,15 @@ services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - "8080:8080"
     env_file: .env
     depends_on:
       - db
-    volumes:
-      - ./webapp:/opt/webapp
+    # volumes:
+    #   - ./webapp:/opt/webapp
     environment:
       - DATABASE_URL=postgres://postgres:password@db:5432/postgres
+      - PORT=8080
   db:
     image: postgres:latest
     ports:
